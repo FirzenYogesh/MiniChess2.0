@@ -12,7 +12,11 @@ public class ChessBoard {
     private boolean isPlayer1Move = true;
     private int boardSize = 5;
 
+
     public ChessBoard(ChessPiece[] player1Pieces, ChessPiece[] player2Pieces, int boardSize) {
+        if (boardSize < 5)
+            boardSize = 5;
+        this.boardSize = boardSize;
         this.player1Pieces = player1Pieces;
         this.player2Pieces = player2Pieces;
         chessBlocks = new ChessPiece[boardSize][boardSize];
@@ -23,15 +27,18 @@ public class ChessBoard {
     }
 
     public void displayBoard() {
+        System.out.println();
         for (int i = 0; i < boardSize; i++) {
             for (int j = 0; j < boardSize; j++) {
-                if (chessBlocks[i][j] != null) {
+                if (chessBlocks[i][j] == null) {
                     System.out.printf("%2s-%2s", " ", " ");
                 } else {
                     System.out.printf("%1s%s-%s%1s", " ", chessBlocks[i][j].getPlayer(), chessBlocks[i][j].getName(), " ");
                 }
             }
+            System.out.println();
         }
+        System.out.println();
     }
 
     private boolean isCommandFormatValid(String command) {
@@ -43,10 +50,11 @@ public class ChessBoard {
     }
 
     private boolean isMoveWithinTheBoard(ChessPiece piece) {
-        return piece.getNewCoordinate().getRow() >= 0
-                && piece.getNewCoordinate().getRow() < boardSize
-                && piece.getNewCoordinate().getColumn() >= 0
-                && piece.getNewCoordinate().getColumn() < boardSize;
+        return piece != null &&
+                piece.getNewCoordinate().getRow() >= 0 &&
+                piece.getNewCoordinate().getRow() < boardSize &&
+                piece.getNewCoordinate().getColumn() >= 0 &&
+                piece.getNewCoordinate().getColumn() < boardSize;
     }
 
     private boolean hasFriendlyPiece(Coordinate coordinate, ChessPiece piece) {
@@ -63,7 +71,7 @@ public class ChessBoard {
         return chessBlocks[coordinate.getRow()][coordinate.getColumn()];
     }
 
-    public boolean giveCommand(String command) {
+    public void giveCommand(String command) {
         boolean commandSuccessful = false;
         if (isCommandFormatValid(command)) {
             String name = CommandParser.getPieceName(command);
@@ -74,11 +82,13 @@ public class ChessBoard {
                 Util.print("Invalid Move.", "This Piece does not exist");
             } else {
                 commandSuccessful = moveAPiece(pieceToMove, move);
-                if (commandSuccessful)
+                if (commandSuccessful) {
                     swapPiece(pieceToMove);
+                    isPlayer1Move = !isPlayer1Move;
+                }
             }
         }
-        return commandSuccessful;
+        //return commandSuccessful;
     }
 
     private boolean moveAPiece(ChessPiece piece, String move) {
@@ -86,6 +96,7 @@ public class ChessBoard {
         if (piece.isDead()) Util.print("Invalid Move.", "This soldier is dead");
         else {
             if (piece.isValidMoveCommand(move)) {
+                piece.prepareMove(move);
                 if (isMoveWithinTheBoard(piece)) {
                     if (hasFriendlyPiece(piece.getNewCoordinate(), piece)) {
                         Util.print("Invalid Move.", "A friendly Piece is on the way");
@@ -115,5 +126,33 @@ public class ChessBoard {
         chessBlocks[newPosition.getRow()][newPosition.getColumn()] = piece;
         chessBlocks[currentPosition.getRow()][currentPosition.getColumn()] = null;
         piece.move();
+    }
+
+    public String getWhoseTurn() {
+        return isPlayer1Move ? Util.P1 : Util.P2;
+    }
+
+    private static int player1PiecesLeft = 5;
+    private static int player2PiecesLeft = 5;
+
+    public static void setTotalPiecesForPlayers(int boardSize) {
+        player1PiecesLeft = boardSize;
+        player2PiecesLeft = boardSize;
+    }
+
+    public static int getPlayer1PiecesLeft() {
+        return player1PiecesLeft;
+    }
+
+    public static int getPlayer2PiecesLeft() {
+        return player2PiecesLeft;
+    }
+
+    public static void removedPlayer1Piece() {
+        player1PiecesLeft--;
+    }
+
+    public static void removedPlayer2Piece() {
+        player2PiecesLeft--;
     }
 }

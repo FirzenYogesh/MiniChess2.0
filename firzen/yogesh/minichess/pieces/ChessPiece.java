@@ -2,6 +2,7 @@ package firzen.yogesh.minichess.pieces;
 
 import firzen.yogesh.minichess.Util;
 import firzen.yogesh.minichess.coordinate.Coordinate;
+import firzen.yogesh.minichess.playingfield.ChessBoard;
 
 public abstract class ChessPiece {
     protected int steps;
@@ -59,7 +60,7 @@ public abstract class ChessPiece {
         return isAlive;
     }
 
-    public void kill() {
+    private void kill() {
         isDead = true;
         isAlive = false;
     }
@@ -67,6 +68,10 @@ public abstract class ChessPiece {
     public void killPiece(ChessPiece piece) {
         if (isEnemy(piece)) {
             piece.kill();
+            if (piece.belongsToPlayer1())
+                ChessBoard.removedPlayer1Piece();
+            else
+                ChessBoard.removedPlayer2Piece();
         }
     }
 
